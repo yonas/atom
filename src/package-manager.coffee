@@ -468,22 +468,30 @@ class PackageManager
     @activationHookEmitter.on(hook, callback)
 
   # Deactivate all packages
-  deactivatePackages: ->
+  deactivatePackages: (serialize=true)->
     @config.transact =>
-      @deactivatePackage(pack.name) for pack in @getLoadedPackages()
+      @deactivatePackage(pack.name, serialize) for pack in @getLoadedPackages()
       return
     @unobserveDisabledPackages()
     @unobservePackagesWithKeymapsDisabled()
 
   # Deactivate the package with the given name
-  deactivatePackage: (name) ->
+  deactivatePackage: (name, serialize=true) ->
     pack = @getLoadedPackage(name)
-    if @isPackageActive(name)
-      @setPackageState(pack.name, state) if state = pack.serialize?()
+    @serializePackage(pack) if serialize
     pack.deactivate()
     delete @activePackages[pack.name]
     delete @activatingPackages[pack.name]
     @emitter.emit 'did-deactivate-package', pack
+
+  serialize: ->
+    for pack in @getLoadedPackages()
+      @serializePackage(pack)
+    @packageStates
+
+  serializePackage: (pack) ->
+    if @isPackageActive(pack.name)
+      @setPackageState(pack.name, state) if state = pack.serialize?()
 
   handleMetadataError: (error, packagePath) ->
     metadataPath = path.join(packagePath, 'package.json')

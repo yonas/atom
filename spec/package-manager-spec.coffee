@@ -444,7 +444,7 @@ describe "PackageManager", ->
         runs ->
           expect(console.warn).not.toHaveBeenCalled()
 
-    it "passes the activate method the package's previously serialized state if it exists", ->
+    fit "passes the activate method the package's previously serialized state if it exists", ->
       pack = null
       waitsForPromise ->
         atom.packages.activatePackage("package-with-serialization").then (p) -> pack = p
@@ -864,7 +864,7 @@ describe "PackageManager", ->
         atom.packages.deactivatePackage("package-that-throws-on-activate")
         expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
 
-    it "absorbs exceptions that are thrown by the package module's serialize method", ->
+    fit "absorbs exceptions that are thrown by the package module's serialize method", ->
       spyOn(console, 'error')
 
       waitsForPromise ->

@@ -119,6 +119,8 @@ class AtomEnvironment extends Model
   constructor: (params={}) ->
     {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
+    # @document.addEventListener(... capture), debounced w/ 1 second
+
     @state = {version: @constructor.version}
 
     @loadTime = null
@@ -623,18 +625,27 @@ class AtomEnvironment extends Model
     @registerDefaultTargetForKeymaps()
 
     @packages.loadPackages()
-    @loadStateSync()
+    state = @loadStateSync()
+    @deserialize(state)
     @document.body.appendChild(@views.getView(@workspace))
 
     @watchProjectPath()
 
-    @packages.activate()
+    @packages.activate(state.packages)
     @keymaps.loadUserKeymap()
     @requireUserInitScript() unless @getLoadSettings().safeMode
 
     @menu.update()
 
     @openInitialEmptyEditorIfNecessary()
+
+  # serialize: ->
+  #   # just build object
+  #   # @state.project = @project.serialize()
+  #   # @state.workspace = @workspace.serialize()
+  #   @packages.serialize()
+  #
+  # deserialize: ->
 
   unloadEditorWindow: ->
     return if not @project
@@ -643,8 +654,8 @@ class AtomEnvironment extends Model
     @state.grammars = {grammarOverridesByPath: @grammars.grammarOverridesByPath}
     @state.project = @project.serialize()
     @state.workspace = @workspace.serialize()
-    @packages.deactivatePackages()
-    @state.packageStates = @packages.packageStates
+    @state.packageStates = @packages.serialize()
+    @packages.deactivatePackages(false)
     @state.fullScreen = @isFullScreen()
     @saveStateSync()
     @saveBlobStoreSync()
@@ -781,6 +792,7 @@ class AtomEnvironment extends Model
     @blobStore.save()
 
   saveStateSync: ->
+    # call serialize and write to disk
     return unless @enablePersistence
 
     if storageKey = @getStateKey(@project?.getPaths())
@@ -789,6 +801,7 @@ class AtomEnvironment extends Model
       @getCurrentWindow().loadSettings.windowState = JSON.stringify(@state)
 
   loadStateSync: ->
+    # call deserialize with state from disk
     return unless @enablePersistence
 
     startTime = Date.now()
