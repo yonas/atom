@@ -1,6 +1,6 @@
 ![Proton](https://fizk.net/sites/default/files/proton.jpg)
 
-Proton is a fork of the hackable text editor Atom. See [README-old.md][https://github.com/yonas/proton/blob/master/README-old.md] for the old README.
+Proton is a fork of the hackable text editor Atom. See [README-old.md](https://github.com/yonas/proton/blob/master/README-old.md) for the old README.
 
 ## Reasons for the fork
 
